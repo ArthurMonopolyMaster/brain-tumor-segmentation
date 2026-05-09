@@ -207,21 +207,21 @@ def get_dataloaders():
         train_ds,
         batch_size=config.BATCH_SIZE,
         shuffle=True,
-        num_workers=config.NUM_WORKERS,
+        num_workers=0,
         pin_memory=config.PIN_MEMORY,
     )
     val_loader = DataLoader(
         val_ds,
         batch_size=1,
         shuffle=False,
-        num_workers=config.NUM_WORKERS,
+        num_workers=0,
         pin_memory=config.PIN_MEMORY,
     )
     test_loader = DataLoader(
         test_ds,
         batch_size=1,
         shuffle=False,
-        num_workers=config.NUM_WORKERS,
+        num_workers=0,
         pin_memory=config.PIN_MEMORY,
     )
 
