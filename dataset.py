@@ -53,7 +53,7 @@ def scan_brats_directory(data_root: str) -> list[dict]:
     Scan a BraTS 2023 directory and return a list of dicts:
       {"image": [path_t1n, path_t1c, path_t2w, path_t2f], "label": path_seg, "patient_id": ...}
 
-    Skips patients with missing files and emits a warning.
+
     """
     data_list = []
     if not os.path.isdir(data_root):
@@ -64,21 +64,29 @@ def scan_brats_directory(data_root: str) -> list[dict]:
         if not os.path.isdir(patient_path):
             continue
 
-        # Build expected file paths
+
         image_paths = []
         all_exist = True
         for modality in config.MODALITIES:
             suffix = config.MODALITY_SUFFIXES[modality]
-            fname = f"{patient_dir}-{suffix}.nii.gz"
-            fpath = os.path.join(patient_path, fname)
-            if not os.path.isfile(fpath):
-                warnings.warn(f"Missing modality file: {fpath}")
+            modality_dir = os.path.join(patient_path, f"{patient_dir}-{suffix}.nii")
+
+            if not os.path.isdir(modality_dir):
+                warnings.warn(f"Missing modality directory: {modality_dir}")
                 all_exist = False
                 break
-            image_paths.append(fpath)
 
-        label_fname = f"{patient_dir}-{config.LABEL_SUFFIX}.nii.gz"
-        label_path = os.path.join(patient_path, label_fname)
+
+            nii_files = [f for f in os.listdir(modality_dir) if f.endswith(".nii")]
+            if not nii_files:
+                warnings.warn(f"No .nii files in: {modality_dir}")
+                all_exist = False
+                break
+
+            image_paths.append(os.path.join(modality_dir, nii_files[0]))
+
+
+        label_path = os.path.join(patient_path, f"{patient_dir}-{config.LABEL_SUFFIX}.nii")
         if not os.path.isfile(label_path):
             warnings.warn(f"Missing label file: {label_path}")
             all_exist = False
