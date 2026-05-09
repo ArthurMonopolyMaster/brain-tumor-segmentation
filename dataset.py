@@ -53,7 +53,9 @@ def scan_brats_directory(data_root: str) -> list[dict]:
     Scan a BraTS 2023 directory and return a list of dicts:
       {"image": [path_t1n, path_t1c, path_t2w, path_t2f], "label": path_seg, "patient_id": ...}
 
-
+    Підтримує дві структури:
+      A) <patient>-<suffix>.nii/<arbitrary_name>.nii  (модальність у підпапці)
+      B) <patient>-<suffix>.nii                        (модальність як файл напряму)
     """
     data_list = []
     if not os.path.isdir(data_root):
@@ -64,28 +66,32 @@ def scan_brats_directory(data_root: str) -> list[dict]:
         if not os.path.isdir(patient_path):
             continue
 
-
+        # Збираємо шляхи до 4 модальностей
         image_paths = []
         all_exist = True
         for modality in config.MODALITIES:
             suffix = config.MODALITY_SUFFIXES[modality]
-            modality_dir = os.path.join(patient_path, f"{patient_dir}-{suffix}.nii")
+            base_name = f"{patient_dir}-{suffix}.nii"
+            base_path = os.path.join(patient_path, base_name)
 
-            if not os.path.isdir(modality_dir):
-                warnings.warn(f"Missing modality directory: {modality_dir}")
+            # Підтримка обох структур
+            if os.path.isfile(base_path):
+                # Структура Б: звичайний файл
+                image_paths.append(base_path)
+            elif os.path.isdir(base_path):
+                # Структура А: підпапка з .nii файлом всередині
+                nii_files = [f for f in os.listdir(base_path) if f.endswith(".nii")]
+                if not nii_files:
+                    warnings.warn(f"No .nii files in: {base_path}")
+                    all_exist = False
+                    break
+                image_paths.append(os.path.join(base_path, nii_files[0]))
+            else:
+                warnings.warn(f"Missing modality (neither file nor dir): {base_path}")
                 all_exist = False
                 break
 
-
-            nii_files = [f for f in os.listdir(modality_dir) if f.endswith(".nii")]
-            if not nii_files:
-                warnings.warn(f"No .nii files in: {modality_dir}")
-                all_exist = False
-                break
-
-            image_paths.append(os.path.join(modality_dir, nii_files[0]))
-
-
+        # Маска — завжди файл
         label_path = os.path.join(patient_path, f"{patient_dir}-{config.LABEL_SUFFIX}.nii")
         if not os.path.isfile(label_path):
             warnings.warn(f"Missing label file: {label_path}")
