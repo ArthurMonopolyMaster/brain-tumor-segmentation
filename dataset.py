@@ -189,13 +189,13 @@ def get_dataloaders():
     train_ds = CacheDataset(
         data=splits["train"],
         transform=get_train_transforms(),
-        cache_rate=1.0,
+        cache_rate=0.1,
         num_workers=config.NUM_WORKERS,
     )
     val_ds = CacheDataset(
         data=splits["val"],
         transform=get_val_transforms(),
-        cache_rate=1.0,
+        cache_rate=0.3,
         num_workers=config.NUM_WORKERS,
     )
     test_ds = Dataset(
