@@ -26,7 +26,8 @@ def train():
     # ── Device ──
     device = torch.device(config.DEVICE if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
-
+    os.makedirs(config.CHECKPOINT_DIR, exist_ok=True)
+    os.makedirs(config.LOG_DIR, exist_ok=True)
     # ── Data ──
     train_loader, val_loader, _ = get_dataloaders()
 
