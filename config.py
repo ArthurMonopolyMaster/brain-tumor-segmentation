@@ -9,13 +9,31 @@ import os
 # Paths
 # ──────────────────────────────────────────────
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-DATA_ROOT = "D:/BraTS_GLI_2023_diploma/ASNR-MICCAI-BraTS2023-GLI-Challenge-TrainingData/ASNR-MICCAI-BraTS2023-GLI-Challenge-TrainingData"
-OUTPUT_DIR = os.path.join(PROJECT_ROOT, "outputs")
+
+DATA_ROOT = os.environ.get(
+    "BRATS_DATA_ROOT",
+    "D:/BraTS_GLI_2023_diploma/ASNR-MICCAI-BraTS2023-GLI-Challenge-TrainingData/ASNR-MICCAI-BraTS2023-GLI-Challenge-TrainingData"
+)
+
+OUTPUT_DIR = os.environ.get(
+    "BRATS_OUTPUT_DIR",
+    os.path.join(PROJECT_ROOT, "outputs")
+)
 CHECKPOINT_DIR = os.path.join(OUTPUT_DIR, "checkpoints")
 LOG_DIR = os.path.join(OUTPUT_DIR, "logs")
 PREDICTIONS_DIR = os.path.join(OUTPUT_DIR, "predictions")
 RESULTS_DIR = os.path.join(OUTPUT_DIR, "results")
-SPLITS_FILE = os.path.join(PROJECT_ROOT, "splits.json")
+
+SPLITS_FILE = os.environ.get(
+    "BRATS_SPLITS_FILE",
+    os.path.join(PROJECT_ROOT, "splits.json")
+)
+
+# ──────────────────────────────────────────────
+# Debug mode (для швидкої перевірки коду перед повним тренуванням)
+# ──────────────────────────────────────────────
+DEBUG_MODE = os.environ.get("BRATS_DEBUG", "0") == "1"
+DEBUG_NUM_PATIENTS = 8 if DEBUG_MODE else None
 
 # ──────────────────────────────────────────────
 # Dataset
@@ -62,7 +80,7 @@ NUM_RES_UNITS = 2
 # ──────────────────────────────────────────────
 PATCH_SIZE = (128, 128, 128)
 BATCH_SIZE = 2
-NUM_EPOCHS = 200
+NUM_EPOCHS = 2 if DEBUG_MODE else 200
 LEARNING_RATE = 1e-4
 WEIGHT_DECAY = 1e-5
 OPTIMIZER = "AdamW"
@@ -78,13 +96,13 @@ SIGMOID = True
 # ──────────────────────────────────────────────
 # Validation
 # ──────────────────────────────────────────────
-VAL_INTERVAL = 5  # Validate every N epochs
+VAL_INTERVAL = 1 if DEBUG_MODE else 5  # Validate every N epochs
 SLIDING_WINDOW_OVERLAP = 0.5
 
 # ──────────────────────────────────────────────
 # Early stopping
 # ──────────────────────────────────────────────
-EARLY_STOPPING_PATIENCE = 30
+EARLY_STOPPING_PATIENCE = 5 if DEBUG_MODE else 30
 
 # ──────────────────────────────────────────────
 # Hardware

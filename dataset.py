@@ -163,7 +163,15 @@ def get_dataloaders():
 
     data_list = scan_brats_directory(config.DATA_ROOT)
     splits = create_splits(data_list)
-
+    if config.DEBUG_NUM_PATIENTS is not None:
+        n = config.DEBUG_NUM_PATIENTS
+        splits = {
+            "train": splits["train"][:max(n - 2, 1)],
+            "val": splits["val"][:1],
+            "test": splits["test"][:1],
+        }
+        print(f"DEBUG MODE: train={len(splits['train'])}, "
+              f"val={len(splits['val'])}, test={len(splits['test'])}")
     train_ds = CacheDataset(
         data=splits["train"],
         transform=get_train_transforms(),
