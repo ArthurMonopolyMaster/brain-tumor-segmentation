@@ -189,7 +189,7 @@ def get_dataloaders():
     train_ds = CacheDataset(
         data=splits["train"],
         transform=get_train_transforms(),
-        cache_rate=0.4,
+        cache_rate=1,
         num_workers=config.NUM_WORKERS,
     )
     val_ds = CacheDataset(
@@ -207,21 +207,21 @@ def get_dataloaders():
         train_ds,
         batch_size=config.BATCH_SIZE,
         shuffle=True,
-        num_workers=4,
+        num_workers=config.NUM_WORKERS,
         pin_memory=config.PIN_MEMORY,
     )
     val_loader = DataLoader(
         val_ds,
         batch_size=1,
         shuffle=False,
-        num_workers=4,
+        num_workers=config.NUM_WORKERS,
         pin_memory=config.PIN_MEMORY,
     )
     test_loader = DataLoader(
         test_ds,
         batch_size=1,
         shuffle=False,
-        num_workers=4,
+        num_workers=config.NUM_WORKERS,
         pin_memory=config.PIN_MEMORY,
     )
 
