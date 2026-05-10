@@ -108,5 +108,5 @@ EARLY_STOPPING_PATIENCE = 5 if DEBUG_MODE else 30
 # Hardware
 # ──────────────────────────────────────────────
 DEVICE = "cuda"
-NUM_WORKERS = 2
+NUM_WORKERS = 4
 PIN_MEMORY = True
