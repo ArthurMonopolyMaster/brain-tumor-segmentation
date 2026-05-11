@@ -186,17 +186,13 @@ def get_dataloaders():
         }
         print(f"DEBUG MODE: train={len(splits['train'])}, "
               f"val={len(splits['val'])}, test={len(splits['test'])}")
-    train_ds = CacheDataset(
+    train_ds = Dataset(
         data=splits["train"],
         transform=get_train_transforms(),
-        cache_rate=1,
-        num_workers=config.NUM_WORKERS,
     )
-    val_ds = CacheDataset(
+    val_ds = Dataset(
         data=splits["val"],
         transform=get_val_transforms(),
-        cache_rate=1,
-        num_workers=config.NUM_WORKERS,
     )
     test_ds = Dataset(
         data=splits["test"],
