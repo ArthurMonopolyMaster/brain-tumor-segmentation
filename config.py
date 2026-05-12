@@ -49,7 +49,11 @@ MODALITY_SUFFIXES = {
     "flair": "t2f",
 }
 LABEL_SUFFIX = "seg"
-
+# Підтримувані розширення NIfTI файлів.
+# .nii.gz — стандарт BraTS-2023 (стиснутий).
+# .nii — нестиснутий, з'являється коли Kaggle auto-extracts gzip при upload датасету.
+# Порядок важливий: спочатку шукаємо .nii.gz (як у специфікації), потім .nii (fallback).
+NIFTI_EXTENSIONS = (".nii.gz", ".nii")
 NUM_INPUT_CHANNELS = 4
 NUM_OUTPUT_CHANNELS = 3  # WT, TC, ET
 

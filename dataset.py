@@ -55,7 +55,7 @@ def scan_brats_directory(data_root: str) -> list[dict]:
 
     Підтримує дві структури:
       A) <patient>-<suffix>.nii/<arbitrary_name>.nii  (модальність у підпапці)
-      B) <patient>-<suffix>.nii                        (модальність як файл напряму)
+      B) <patient>-<suffix>.{nii,nii.gz}              (модальність як файл напряму)
     """
     data_list = []
     if not os.path.isdir(data_root):
@@ -66,35 +66,21 @@ def scan_brats_directory(data_root: str) -> list[dict]:
         if not os.path.isdir(patient_path):
             continue
 
-        # Збираємо шляхи до 4 модальностей
         image_paths = []
         all_exist = True
         for modality in config.MODALITIES:
             suffix = config.MODALITY_SUFFIXES[modality]
-            base_name = f"{patient_dir}-{suffix}.nii"
-            base_path = os.path.join(patient_path, base_name)
-
-            # Підтримка обох структур
-            if os.path.isfile(base_path):
-                # Структура Б: звичайний файл
-                image_paths.append(base_path)
-            elif os.path.isdir(base_path):
-                # Структура А: підпапка з .nii файлом всередині
-                nii_files = [f for f in os.listdir(base_path) if f.endswith(".nii")]
-                if not nii_files:
-                    warnings.warn(f"No .nii files in: {base_path}")
-                    all_exist = False
-                    break
-                image_paths.append(os.path.join(base_path, nii_files[0]))
-            else:
-                warnings.warn(f"Missing modality (neither file nor dir): {base_path}")
+            found_path = _find_modality(patient_path, patient_dir, suffix)
+            if found_path is None:
+                warnings.warn(f"Missing modality for {patient_dir}: suffix={suffix}")
                 all_exist = False
                 break
+            image_paths.append(found_path)
 
-        # Маска — завжди файл
-        label_path = os.path.join(patient_path, f"{patient_dir}-{config.LABEL_SUFFIX}.nii")
-        if not os.path.isfile(label_path):
-            warnings.warn(f"Missing label file: {label_path}")
+        # Маска — завжди файл (не підпапка)
+        label_path = _find_label_file(patient_path, patient_dir)
+        if label_path is None:
+            warnings.warn(f"Missing label file for {patient_dir}")
             all_exist = False
 
         if not all_exist:
@@ -109,6 +95,42 @@ def scan_brats_directory(data_root: str) -> list[dict]:
 
     print(f"Found {len(data_list)} complete patients in {data_root}")
     return data_list
+
+
+def _find_modality(patient_path: str, patient_dir: str, suffix: str) -> str | None:
+    """
+    Знайти файл модальності для одного пацієнта.
+    Підтримує:
+      - Структуру Б: <patient>-<suffix>.nii або <patient>-<suffix>.nii.gz (прямий файл)
+      - Структуру А: <patient>-<suffix>.nii/<щось>.nii (підпапка з файлом всередині)
+    Повертає шлях до файлу або None.
+    """
+    # Спочатку структура Б — пряме входження файлу з підтримуваним розширенням
+    for ext in config.NIFTI_EXTENSIONS:
+        candidate = os.path.join(patient_path, f"{patient_dir}-{suffix}{ext}")
+        if os.path.isfile(candidate):
+            return candidate
+
+    # Тепер структура А — папка з суфіксом .nii в назві
+    dir_candidate = os.path.join(patient_path, f"{patient_dir}-{suffix}.nii")
+    if os.path.isdir(dir_candidate):
+        nii_files = sorted(
+            f for f in os.listdir(dir_candidate)
+            if f.endswith(config.NIFTI_EXTENSIONS)
+        )
+        if nii_files:
+            return os.path.join(dir_candidate, nii_files[0])
+
+    return None
+
+
+def _find_label_file(patient_path: str, patient_dir: str) -> str | None:
+    """Знайти файл маски (seg). Завжди звичайний файл, не підпапка."""
+    for ext in config.NIFTI_EXTENSIONS:
+        candidate = os.path.join(patient_path, f"{patient_dir}-{config.LABEL_SUFFIX}{ext}")
+        if os.path.isfile(candidate):
+            return candidate
+    return None
 
 
 # ──────────────────────────────────────────────────────

@@ -64,15 +64,21 @@ def predict(input_dir: str, output_dir: str, checkpoint: str):
     image_paths = []
     for modality in config.MODALITIES:
         suffix = config.MODALITY_SUFFIXES[modality]
-        fpath = os.path.join(input_dir, f"{patient_name}-{suffix}.nii.gz")
-        if not os.path.isfile(fpath):
-            raise FileNotFoundError(f"Missing modality file: {fpath}")
+        fpath = None
+        for ext in config.NIFTI_EXTENSIONS:
+            candidate = os.path.join(input_dir, f"{patient_name}-{suffix}{ext}")
+            if os.path.isfile(candidate):
+                fpath = candidate
+                break
+        if fpath is None:
+            raise FileNotFoundError(
+                f"Missing modality file for {patient_name}, suffix={suffix}"
+            )
         image_paths.append(fpath)
 
     # ── Transforms (same as validation, but for raw arrays) ──
     loader = LoadImage(image_only=True)
     transform = Compose([
-        EnsureChannelFirst(),
         Orientation(axcodes="RAS"),
         NormalizeIntensity(nonzero=True, channel_wise=True),
         EnsureType(),
@@ -107,7 +113,14 @@ def predict(input_dir: str, output_dir: str, checkpoint: str):
 
     # Use FLAIR as reference for affine/header
     flair_suffix = config.MODALITY_SUFFIXES["flair"]
-    ref_path = os.path.join(input_dir, f"{patient_name}-{flair_suffix}.nii.gz")
+    ref_path = None
+    for ext in config.NIFTI_EXTENSIONS:
+        candidate = os.path.join(input_dir, f"{patient_name}-{flair_suffix}{ext}")
+        if os.path.isfile(candidate):
+            ref_path = candidate
+            break
+    if ref_path is None:
+        raise FileNotFoundError(f"FLAIR reference not found for {patient_name}")
     ref_nii = nib.load(ref_path)
 
     pred_nii = nib.Nifti1Image(label_map, affine=ref_nii.affine, header=ref_nii.header)
