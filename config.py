@@ -89,7 +89,7 @@ NUM_RES_UNITS = 2
 # ──────────────────────────────────────────────
 PATCH_SIZE = (128, 128, 128)
 BATCH_SIZE = 2
-NUM_EPOCHS = 2 if DEBUG_MODE else 200
+NUM_EPOCHS = 2 if DEBUG_MODE else 99
 LEARNING_RATE = 1e-4
 WEIGHT_DECAY = 1e-5
 OPTIMIZER = "AdamW"
