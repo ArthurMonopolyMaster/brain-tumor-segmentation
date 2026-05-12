@@ -4,7 +4,10 @@ All hyperparameters and paths are defined here — no magic numbers elsewhere.
 """
 
 import os
-
+# ──────────────────────────────────────────────
+# Model selection
+# ──────────────────────────────────────────────
+MODEL_NAME = os.environ.get("BRATS_MODEL", "UNet")  # Options: "UNet", "AttentionUNet", "SegResNet"
 # ──────────────────────────────────────────────
 # Paths
 # ──────────────────────────────────────────────
@@ -15,15 +18,18 @@ DATA_ROOT = os.environ.get(
     "D:/BraTS_GLI_2023_diploma/ASNR-MICCAI-BraTS2023-GLI-Challenge-TrainingData/ASNR-MICCAI-BraTS2023-GLI-Challenge-TrainingData"
 )
 
-OUTPUT_DIR = os.environ.get(
+OUTPUT_ROOT = os.environ.get(
     "BRATS_OUTPUT_DIR",
     os.path.join(PROJECT_ROOT, "outputs")
 )
+# Per-model output subdir
+OUTPUT_DIR = os.path.join(OUTPUT_ROOT, MODEL_NAME)
 CHECKPOINT_DIR = os.path.join(OUTPUT_DIR, "checkpoints")
 LOG_DIR = os.path.join(OUTPUT_DIR, "logs")
 PREDICTIONS_DIR = os.path.join(OUTPUT_DIR, "predictions")
 RESULTS_DIR = os.path.join(OUTPUT_DIR, "results")
 
+# splits.json — спільний для всіх моделей (для чесного порівняння!)
 SPLITS_FILE = os.environ.get(
     "BRATS_SPLITS_FILE",
     os.path.join(PROJECT_ROOT, "splits.json")
@@ -74,7 +80,6 @@ RANDOM_SEED = 42
 # ──────────────────────────────────────────────
 # Model
 # ──────────────────────────────────────────────
-MODEL_NAME = "UNet"  # Options: "UNet", "AttentionUNet", "SegResNet"
 CHANNELS = (32, 64, 128, 256, 512)
 STRIDES = (2, 2, 2, 2)
 NUM_RES_UNITS = 2
